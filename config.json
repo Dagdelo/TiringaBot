@@ -1,4 +1,4 @@
 {
   "prefix": "!",
-  "token": "<token>"
+  "token": "process.env.BOT_TOKEN"
 }
