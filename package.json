@@ -1,0 +1,21 @@
+{
+  "name": "tiringa-bot",
+  "version": "1.0.0",
+  "description": "Discord speaking bot that impersonates the legendary Tiringa",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "tiringa"
+  ],
+  "author": "Henrique D. Sales",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/opus": "^0.1.0",
+    "discord.js": "^12.1.1",
+    "ffmpeg-static": "^4.1.0"
+  }
+}
