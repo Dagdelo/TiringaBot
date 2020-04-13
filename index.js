@@ -1,8 +1,6 @@
 const fs = require("fs");
 const Discord = require("discord.js");
-const { prefix, token } = require("./config.json");
-
-console.log("token: " + token);
+const { prefix } = require("./config.json");
 
 const client = new Discord.Client();
 
@@ -97,4 +95,4 @@ client.on("message", message => {
   if (!server.playing) play(id);
 });
 
-client.login(token);
+client.login(process.env.BOT_TOKEN);
