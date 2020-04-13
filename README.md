@@ -1,0 +1,2 @@
+# TiringaBot
+Discord bot
