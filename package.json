@@ -12,7 +12,7 @@
     "tiringa"
   ],
   "author": "Henrique D. Sales",
-  "license": "ISC",
+  "license": "GNU General Public License v3.0",
   "dependencies": {
     "@discordjs/opus": "^0.1.0",
     "discord.js": "^12.1.1",
