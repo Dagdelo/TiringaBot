@@ -1,4 +1,5 @@
 const fs = require("fs");
+const logger = require("./logger"); // Import the logger
 
 module.exports = {
   name: "tiringa",
@@ -18,6 +19,7 @@ module.exports = {
     let sentence = available_sentences.filter((s) => s.includes(file));
     if (!sentence.length) {
       message.channel.send("Ainda não temos essa :("); // Send error message if no matching file is found
+      logger.warn(`No matching sentence found for: ${file}`);
     } else {
       if (sentence.length > 1) {
         sentence = sentence[Math.floor(Math.random() * sentence.length)]; // Pick a random sentence if multiple match
@@ -27,13 +29,15 @@ module.exports = {
         .join()
         .then((connection) => {
           const dispatcher = connection.play(`./audio/${sentence}.mp3`);
+          logger.info(`Playing: ${sentence}.mp3`);
           dispatcher.on("finish", () => {
             voiceChannel.leave(); // Leave the voice channel when audio finishes
+            logger.info("Left voice channel");
           });
         })
         .catch((err) => {
           message.channel.send(err); // Send error message to the channel
-          console.log(err);
+          logger.error(err.message);
           voiceChannel.leave(); // Leave the voice channel on error
         });
     }

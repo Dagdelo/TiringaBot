@@ -1,11 +1,12 @@
 const fs = require("fs");
 const Discord = require("discord.js");
 const { prefix } = require("./config.json");
+const logger = require("./logger"); // Import the logger
 
 const client = new Discord.Client();
 
 client.once("ready", () => {
-  console.log("Ready!"); // Log when the bot is ready
+  logger.info("Bot is ready!"); // Log when the bot is ready
 });
 
 var servers = {};
@@ -28,11 +29,12 @@ function play(id) {
   let sentence = available_sentences.filter(s => s.includes(file));
   if (!sentence.length) {
     server.queue.shift(); // Remove the current item from the queue
+    logger.warn(`No matching sentence found for: ${file}`);
     return;
   } else if (sentence.length > 1) {
     sentence = sentence[Math.floor(Math.random() * sentence.length)]; // Pick a random sentence if multiple match
   }
-  
+
   let voiceChannel = message.member.voice.channel;
   return voiceChannel
     .join()
@@ -41,6 +43,7 @@ function play(id) {
         let dispatcher = connection.play(`./audio/${sentence}.mp3`);
         dispatcher.on("start", () => {
           server.playing = true; // Set playing status to true when audio starts
+          logger.info(`Playing: ${sentence}.mp3`);
         });
         dispatcher.on("finish", () => {
           server.queue.shift(); // Remove the current item from the queue when audio finishes
@@ -49,13 +52,14 @@ function play(id) {
             play(id); // Play the next item in the queue
           } else {
             voiceChannel.leave(); // Leave the voice channel if the queue is empty
+            logger.info("Left voice channel");
           }
         });
       }
     })
     .catch(err => {
       message.channel.send(err); // Send error message to the channel
-      console.log(err);
+      logger.error(err.message);
       voiceChannel.leave(); // Leave the voice channel on error
     });
 }
@@ -70,6 +74,7 @@ function list(message) {
       .replace(/[\u0300-\u036f]/g, "");
   });
   message.channel.send(available_sentences.join("\n")); // Send the list of audio files to the channel
+  logger.info("Listed available sentences");
 }
 
 client.on("message", message => {
@@ -84,6 +89,7 @@ client.on("message", message => {
   // Check if the user is in a voice channel
   if (!message.member.voice.channel) {
     message.channel.send("E como é que eu vô fala!?"); // Send error message if the user is not in a voice channel
+    logger.warn("User not in a voice channel");
     return;
   }
 
@@ -97,6 +103,7 @@ client.on("message", message => {
   if (!servers[id]) servers[id] = { queue: [], playing: false }; // Initialize server queue and playing status if not already initialized
   let server = servers[id];
   server.queue.push({ message, file }); // Add the message and file to the server queue
+  logger.info(`Added to queue: ${file}`);
 
   if (!server.playing) play(id); // Play the audio if not already playing
 });
