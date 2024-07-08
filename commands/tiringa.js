@@ -1,44 +1,44 @@
 const fs = require("fs");
+const logger = require("./logger"); // Import the logger
 
 module.exports = {
   name: "tiringa",
   description: "Make Tiringa spoke.",
   args: true,
   execute(message, file) {
-    /* fs.readdirSync("./audio").forEach((f) => {
-      let newFile = f
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      fs.renameSync(`./audio/${f}`, `./audio/${newFile}`);
-    }); */
-    let avaible_sentences = fs.readdirSync("./audio").map((f) => {
+    // Read available audio files and process their names
+    let available_sentences = fs.readdirSync("./audio").map((f) => {
       return f
-        .slice(0, -4)
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
+        .slice(0, -4) // Remove file extension
+        .toLowerCase() // Convert to lowercase
+        .normalize("NFD") // Normalize Unicode characters
+        .replace(/[\u0300-\u036f]/g, ""); // Remove diacritical marks
     });
-    let sentence = avaible_sentences.filter((s) => s.includes(file));
+
+    // Filter sentences that include the requested file
+    let sentence = available_sentences.filter((s) => s.includes(file));
     if (!sentence.length) {
-      message.channel.send("Ainda não temos essa :(");
+      message.channel.send("Ainda não temos essa :("); // Send error message if no matching file is found
+      logger.warn(`No matching sentence found for: ${file}`);
     } else {
       if (sentence.length > 1) {
-        sentence = sentence[Math.floor(Math.random() * sentence.length)];
+        sentence = sentence[Math.floor(Math.random() * sentence.length)]; // Pick a random sentence if multiple match
       }
       var voiceChannel = message.member.voice.channel;
       return voiceChannel
         .join()
         .then((connection) => {
           const dispatcher = connection.play(`./audio/${sentence}.mp3`);
+          logger.info(`Playing: ${sentence}.mp3`);
           dispatcher.on("finish", () => {
-            voiceChannel.leave();
+            voiceChannel.leave(); // Leave the voice channel when audio finishes
+            logger.info("Left voice channel");
           });
         })
         .catch((err) => {
-          message.channel.send(err);
-          console.log(err);
-          voiceChannel.leave();
+          message.channel.send(err); // Send error message to the channel
+          logger.error(err.message);
+          voiceChannel.leave(); // Leave the voice channel on error
         });
     }
   },
