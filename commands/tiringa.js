@@ -5,13 +5,6 @@ module.exports = {
   description: "Make Tiringa spoke.",
   args: true,
   execute(message, file) {
-    /* fs.readdirSync("./audio").forEach((f) => {
-      let newFile = f
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-      fs.renameSync(`./audio/${f}`, `./audio/${newFile}`);
-    }); */
     let avaible_sentences = fs.readdirSync("./audio").map((f) => {
       return f
         .slice(0, -4)
