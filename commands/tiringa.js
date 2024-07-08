@@ -5,19 +5,22 @@ module.exports = {
   description: "Make Tiringa spoke.",
   args: true,
   execute(message, file) {
-    let avaible_sentences = fs.readdirSync("./audio").map((f) => {
+    // Read available audio files and process their names
+    let available_sentences = fs.readdirSync("./audio").map((f) => {
       return f
-        .slice(0, -4)
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
+        .slice(0, -4) // Remove file extension
+        .toLowerCase() // Convert to lowercase
+        .normalize("NFD") // Normalize Unicode characters
+        .replace(/[\u0300-\u036f]/g, ""); // Remove diacritical marks
     });
-    let sentence = avaible_sentences.filter((s) => s.includes(file));
+
+    // Filter sentences that include the requested file
+    let sentence = available_sentences.filter((s) => s.includes(file));
     if (!sentence.length) {
-      message.channel.send("Ainda não temos essa :(");
+      message.channel.send("Ainda não temos essa :("); // Send error message if no matching file is found
     } else {
       if (sentence.length > 1) {
-        sentence = sentence[Math.floor(Math.random() * sentence.length)];
+        sentence = sentence[Math.floor(Math.random() * sentence.length)]; // Pick a random sentence if multiple match
       }
       var voiceChannel = message.member.voice.channel;
       return voiceChannel
@@ -25,13 +28,13 @@ module.exports = {
         .then((connection) => {
           const dispatcher = connection.play(`./audio/${sentence}.mp3`);
           dispatcher.on("finish", () => {
-            voiceChannel.leave();
+            voiceChannel.leave(); // Leave the voice channel when audio finishes
           });
         })
         .catch((err) => {
-          message.channel.send(err);
+          message.channel.send(err); // Send error message to the channel
           console.log(err);
-          voiceChannel.leave();
+          voiceChannel.leave(); // Leave the voice channel on error
         });
     }
   },
