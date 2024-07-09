@@ -4,6 +4,15 @@ const { prefix } = require("./config.json");
 const logger = require("./logger"); // Import the logger
 
 const client = new Discord.Client();
+client.commands = new Discord.Collection();
+
+// Load commands from the commands folder
+const commandFiles = fs.readdirSync("./commands").filter(file => file.endsWith(".js"));
+
+for (const file of commandFiles) {
+  const command = require(`./commands/${file}`);
+  client.commands.set(command.name, command);
+}
 
 client.once("ready", () => {
   logger.info("Bot is ready!"); // Log when the bot is ready
@@ -64,48 +73,26 @@ function play(id) {
     });
 }
 
-// Function to list all available audio files
-function list(message) {
-  let available_sentences = fs.readdirSync("./audio").map(f => {
-    return f
-      .slice(0, -4)
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-  });
-  message.channel.send(available_sentences.join("\n")); // Send the list of audio files to the channel
-  logger.info("Listed available sentences");
-}
-
 client.on("message", message => {
   if (!message.content.startsWith(prefix) || message.author.bot) return;
 
-  // Handle LIST command
-  if (message.content.slice(1).startsWith("list")) {
-    list(message);
-    return;
+  const args = message.content.slice(prefix.length).trim().split(/ +/);
+  const commandName = args.shift().toLowerCase();
+
+  const command = client.commands.get(commandName);
+
+  if (!command) return;
+
+  if (command.args && !args.length) {
+    return message.channel.send(`You didn't provide any arguments, ${message.author}!`);
   }
 
-  // Check if the user is in a voice channel
-  if (!message.member.voice.channel) {
-    message.channel.send("E como é que eu vô fala!?"); // Send error message if the user is not in a voice channel
-    logger.warn("User not in a voice channel");
-    return;
+  try {
+    command.execute(message, ...args);
+  } catch (error) {
+    logger.error(error);
+    message.reply("there was an error trying to execute that command!");
   }
-
-  let id = message.guild.id;
-  let file = message.content
-    .toLowerCase()
-    .slice(prefix.length)
-    .split(/ +/)
-    .join(" "); // Process the file name from the message content
-
-  if (!servers[id]) servers[id] = { queue: [], playing: false }; // Initialize server queue and playing status if not already initialized
-  let server = servers[id];
-  server.queue.push({ message, file }); // Add the message and file to the server queue
-  logger.info(`Added to queue: ${file}`);
-
-  if (!server.playing) play(id); // Play the audio if not already playing
 });
 
 client.login(process.env.BOT_TOKEN); // Log in to Discord with the bot token

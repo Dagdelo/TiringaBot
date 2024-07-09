@@ -1,5 +1,5 @@
 const fs = require("fs");
-const logger = require("./logger"); // Import the logger
+const logger = require("../logger"); // Import the logger
 
 module.exports = {
   name: "tiringa",
